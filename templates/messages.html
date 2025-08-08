@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Messages - SecureChat{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-envelope me-2"></i>Messages
+    </h2>
+    <a href="{{ url_for('send_message') }}" class="btn btn-primary">
+        <i class="fas fa-paper-plane me-2"></i>Send New Message
+    </a>
+</div>
+
+<div class="row">
+    <!-- Received Messages -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-inbox me-2"></i>Received Messages
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if decrypted_messages %}
+                    <div class="list-group list-group-flush">
+                        {% for msg_data in decrypted_messages %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">
+                                        <i class="fas fa-user me-1"></i>{{ msg_data.sender.username }}
+                                        {% if not msg_data.message.is_read %}
+                                            <span class="badge bg-primary ms-1">New</span>
+                                        {% endif %}
+                                    </h6>
+                                    <p class="mb-1"><strong>{{ msg_data.message.subject or 'No Subject' }}</strong></p>
+                                    
+                                    <!-- Message content in collapsible area -->
+                                    <button class="btn btn-sm btn-outline-secondary mb-2" type="button" 
+                                            data-bs-toggle="collapse" data-bs-target="#msg{{ msg_data.message.id }}">
+                                        <i class="fas fa-eye me-1"></i>View Message
+                                    </button>
+                                    
+                                    <div class="collapse" id="msg{{ msg_data.message.id }}">
+                                        <div class="card card-body mt-2">
+                                            {% if msg_data.decrypted_content == '[Decryption Error]' %}
+                                                <div class="alert alert-danger">
+                                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                                    Unable to decrypt this message. The encryption key may be corrupted.
+                                                </div>
+                                            {% else %}
+                                                <pre class="mb-0" style="white-space: pre-wrap; font-family: inherit;">{{ msg_data.decrypted_content }}</pre>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>{{ msg_data.message.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <i class="fas fa-lock text-success" title="Encrypted Message"></i>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h6 class="text-muted">No messages received</h6>
+                        <p class="text-muted">When someone sends you an encrypted message, it will appear here.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sent Messages -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-paper-plane me-2"></i>Sent Messages
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if sent_messages %}
+                    <div class="list-group list-group-flush">
+                        {% for message in sent_messages %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">
+                                        <i class="fas fa-arrow-right me-1"></i>To: {{ message.recipient.username }}
+                                    </h6>
+                                    <p class="mb-1"><strong>{{ message.subject or 'No Subject' }}</strong></p>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>{{ message.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                                        {% if message.is_read %}
+                                            <span class="badge bg-success ms-2">Read</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary ms-2">Unread</span>
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <i class="fas fa-lock text-primary" title="Encrypted Message"></i>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-paper-plane fa-3x text-muted mb-3"></i>
+                        <h6 class="text-muted">No messages sent</h6>
+                        <p class="text-muted">Start a secure conversation by sending your first message!</p>
+                        <a href="{{ url_for('send_message') }}" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>Send Message
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-info-circle me-2 text-info"></i>Message Security Information
+                </h6>
+                <div class="row">
+                    <div class="col-md-4">
+                        <ul class="list-unstyled mb-0">
+                            <li><i class="fas fa-shield-alt text-success me-2"></i>All messages are encrypted end-to-end</li>
+                            <li><i class="fas fa-key text-success me-2"></i>Unique encryption key per message</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <ul class="list-unstyled mb-0">
+                            <li><i class="fas fa-user-secret text-success me-2"></i>Only sender and recipient can read</li>
+                            <li><i class="fas fa-database text-success me-2"></i>Encrypted storage in database</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <ul class="list-unstyled mb-0">
+                            <li><i class="fas fa-cloud text-success me-2"></i>Backup stored in Firebase</li>
+                            <li><i class="fas fa-trash text-warning me-2"></i>Messages cannot be permanently deleted</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Auto-refresh for new messages (every 30 seconds)
+setInterval(function() {
+    // Check for new messages without refreshing the entire page
+    fetch('/api/messages/check-new')
+        .then(response => response.json())
+        .then(data => {
+            if (data.new_messages > 0) {
+                // Show notification or update UI
+                console.log(`${data.new_messages} new messages available`);
+            }
+        })
+        .catch(error => console.error('Error checking for new messages:', error));
+}, 30000);
+
+// Expand/collapse all messages functionality
+function toggleAllMessages(expand) {
+    const collapses = document.querySelectorAll('.collapse');
+    collapses.forEach(collapse => {
+        if (expand) {
+            collapse.classList.add('show');
+        } else {
+            collapse.classList.remove('show');
+        }
+    });
+}
+
+// Add expand/collapse all buttons
+const receivedCard = document.querySelector('.card');
+if (receivedCard) {
+    const cardHeader = receivedCard.querySelector('.card-header');
+    const buttonsDiv = document.createElement('div');
+    buttonsDiv.className = 'btn-group btn-group-sm';
+    buttonsDiv.innerHTML = `
+        <button type="button" class="btn btn-outline-secondary" onclick="toggleAllMessages(true)">
+            <i class="fas fa-expand-alt me-1"></i>Expand All
+        </button>
+        <button type="button" class="btn btn-outline-secondary" onclick="toggleAllMessages(false)">
+            <i class="fas fa-compress-alt me-1"></i>Collapse All
+        </button>
+    `;
+    cardHeader.style.display = 'flex';
+    cardHeader.style.justifyContent = 'space-between';
+    cardHeader.style.alignItems = 'center';
+    cardHeader.appendChild(buttonsDiv);
+}
+</script>
+{% endblock %}

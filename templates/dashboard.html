@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - SecureChat{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+            </h2>
+            <span class="badge bg-success">
+                <i class="fas fa-shield-alt me-1"></i>Secure
+            </span>
+        </div>
+
+        <!-- Welcome Card -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-user-circle me-2 text-primary"></i>Welcome, {{ user.username }}!
+                </h5>
+                <p class="card-text">Your account is verified and your RSA key pair is active.</p>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="d-grid">
+                            <a href="{{ url_for('send_message') }}" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>Send New Message
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-grid">
+                            <a href="{{ url_for('messages') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-envelope me-2"></i>View All Messages
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Messages -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-history me-2"></i>Recent Messages
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_messages %}
+                    <div class="list-group list-group-flush">
+                        {% for message in recent_messages %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">
+                                    <i class="fas fa-user me-1"></i>{{ message.sender.username }}
+                                    {% if not message.is_read %}
+                                        <span class="badge bg-primary ms-2">New</span>
+                                    {% endif %}
+                                </h6>
+                                <p class="mb-1 text-muted">{{ message.subject or 'No Subject' }}</p>
+                                <small class="text-muted">{{ message.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+                            </div>
+                            <div>
+                                <i class="fas fa-lock text-success" title="Encrypted"></i>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('messages') }}" class="btn btn-sm btn-outline-primary">
+                            View All Messages <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h6 class="text-muted">No messages yet</h6>
+                        <p class="text-muted">Start a secure conversation by sending your first message!</p>
+                        <a href="{{ url_for('send_message') }}" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>Send First Message
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Stats Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Account Statistics
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 text-center">
+                    <div class="col-6">
+                        <div class="border rounded p-2">
+                            <h4 class="mb-0 text-primary">{{ unread_count }}</h4>
+                            <small class="text-muted">Unread</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border rounded p-2">
+                            <h4 class="mb-0 text-success">{{ user.sent_messages.count() }}</h4>
+                            <small class="text-muted">Sent</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Info Card -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-shield-alt me-2"></i>Security Status
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="d-flex justify-content-between mb-2">
+                        <span><i class="fas fa-check-circle text-success me-2"></i>Email Verified</span>
+                    </li>
+                    <li class="d-flex justify-content-between mb-2">
+                        <span><i class="fas fa-key text-success me-2"></i>RSA Keys Active</span>
+                    </li>
+                    <li class="d-flex justify-content-between mb-2">
+                        <span><i class="fas fa-lock text-success me-2"></i>E2E Encryption</span>
+                    </li>
+                </ul>
+                
+                <hr>
+                
+                <div class="text-center">
+                    <small class="text-muted">
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        Member since {{ user.created_at.strftime('%B %Y') }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

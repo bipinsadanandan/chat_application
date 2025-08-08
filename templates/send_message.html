@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Send Message - SecureChat{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-paper-plane me-2"></i>Send Encrypted Message
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="recipient_username" class="form-label">
+                            <i class="fas fa-user me-1"></i>Recipient Username
+                        </label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="recipient_username" 
+                                   name="recipient_username" required 
+                                   placeholder="Enter username to send message to">
+                            <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div id="userSuggestions" class="mt-2"></div>
+                        <div class="form-text">Enter the exact username of the person you want to message</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">
+                            <i class="fas fa-tag me-1"></i>Subject <span class="text-muted">(Optional)</span>
+                        </label>
+                        <input type="text" class="form-control" id="subject" name="subject" 
+                               placeholder="Message subject">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="message_content" class="form-label">
+                            <i class="fas fa-edit me-1"></i>Message Content
+                        </label>
+                        <textarea class="form-control" id="message_content" name="message_content" 
+                                  rows="6" required placeholder="Type your secure message here..."></textarea>
+                        <div class="form-text">Your message will be encrypted with RSA and Fernet encryption</div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        <strong>Encryption Process:</strong>
+                        <ol class="mb-0 mt-2">
+                            <li>Your message is encrypted with a unique Fernet key</li>
+                            <li>The Fernet key is encrypted with recipient's RSA public key</li>
+                            <li>Only the recipient can decrypt the message with their private key</li>
+                        </ol>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-lock me-2"></i>Send Encrypted Message
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-lightbulb me-2 text-warning"></i>Tips for Secure Messaging
+                </h6>
+                <ul class="list-unstyled mb-0">
+                    <li><i class="fas fa-check text-success me-2"></i>Double-check the recipient username</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Keep sensitive information brief and clear</li>
+                    <li><i class="fas fa-check text-success me-2"></i>The recipient will receive an email notification</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Messages cannot be decrypted by anyone else</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// User search functionality
+let searchTimeout;
+const searchBtn = document.getElementById('searchBtn');
+const recipientInput = document.getElementById('recipient_username');
+const suggestionsDiv = document.getElementById('userSuggestions');
+
+function searchUsers(query) {
+    if (query.length < 2) {
+        suggestionsDiv.innerHTML = '';
+        return;
+    }
+    
+    fetch(`/api/users/search?q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.users && data.users.length > 0) {
+                let html = '<div class="list-group">';
+                data.users.forEach(user => {
+                    html += `
+                        <button type="button" class="list-group-item list-group-item-action user-suggestion" 
+                                data-username="${user.username}">
+                            <i class="fas fa-user me-2"></i>${user.username}
+                            <small class="text-muted ms-2">(${user.email})</small>
+                        </button>
+                    `;
+                });
+                html += '</div>';
+                suggestionsDiv.innerHTML = html;
+                
+                // Add click handlers
+                document.querySelectorAll('.user-suggestion').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        recipientInput.value = this.dataset.username;
+                        suggestionsDiv.innerHTML = '';
+                    });
+                });
+            } else {
+                suggestionsDiv.innerHTML = '<div class="alert alert-warning">No users found</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Search error:', error);
+            suggestionsDiv.innerHTML = '<div class="alert alert-danger">Search error occurred</div>';
+        });
+}
+
+recipientInput.addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        searchUsers(this.value);
+    }, 300);
+});
+
+searchBtn.addEventListener('click', function() {
+    searchUsers(recipientInput.value);
+});
+
+// Character counter for message
+const messageTextarea = document.getElementById('message_content');
+const charCountDiv = document.createElement('div');
+charCountDiv.className = 'form-text text-end';
+messageTextarea.parentNode.appendChild(charCountDiv);
+
+messageTextarea.addEventListener('input', function() {
+    const count = this.value.length;
+    charCountDiv.textContent = `${count} characters`;
+    
+    if (count > 1000) {
+        charCountDiv.className = 'form-text text-end text-warning';
+        charCountDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>' + charCountDiv.textContent;
+    } else {
+        charCountDiv.className = 'form-text text-end';
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Login - SecureChat{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title text-center mb-0">
+                    <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                </h3>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">
+                            <i class="fas fa-envelope me-1"></i>Email Address
+                        </label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="password" class="form-label">
+                            <i class="fas fa-lock me-1"></i>Password
+                        </label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-shield-alt me-2"></i>Access Secure Chat
+                        </button>
+                    </div>
+
+                    <div class="text-center">
+                        <p>Don't have an account? <a href="{{ url_for('register') }}">Create one</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-info-circle me-2 text-info"></i>Security Information
+                </h5>
+                <ul class="list-unstyled mb-0">
+                    <li><i class="fas fa-check text-success me-2"></i>Your messages are encrypted end-to-end</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Private keys never leave your device</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Zero-knowledge architecture</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
